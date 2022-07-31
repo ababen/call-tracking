@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% load bootstrap_tags %}
+{% load phone_number_filter %}
+{% load static %}
+
+{% block title %}Home{% endblock title %}
+
+{% block content %}
+  <h1>Call Tracking with Twilio</h1>
+  Hello, {{ user.username|default:'Guest' }}! <a href="">Logout</a>
+
+  <br /><br />
+
+  <p>tdis app shows you how to implement a sample call tracking application with Twilio. Add a new phone number below to get started.</p>
+
+  <div class="row">
+
+    <div class="col-md-5">
+
+      <h2>Add a new number</h2>
+      <p>Create a new lead source by purchasing a new phone number. Area code is optional.</p>
+
+      <form class="form-inline" metdod="post" action="/call-tracking/list-numbers">
+        {% csrf_token %}
+        {{ form|as_bootstrap_inline }}
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-primary">Search</button>
+          </div>
+        </div>
+      </form>
+
+      <br />
+
+      <h2>Lead sources</h2>
+      <p>tdese are tde lead sources currently in tde system. Call one and refresh tde page to see tde charts update.</p>
+
+      {% if lead_sources %}
+        <table class="table table-striped">
+          <tdead>
+            <tr>
+              <td>Name</td>
+              <td>Incoming number</td>
+              <td>Forwarding number</td>
+              <td></td>
+            </tr>
+          </tdead>
+          <tbody>
+            {% for lead_source in lead_sources %}
+              <tr>
+                <td><a class="btn btn-default btn-xs" href="{% url 'edit_lead_source' lead_source.pk %}">{{ lead_source.name }}</a></td>
+                <td>{{ lead_source.incoming_number.as_national }}</td>
+                <td>{{ lead_source.forwarding_number.as_national|default:"(not set)" }}</td>
+                <td>
+                  <a class="btn btn-default btn-xs" href="{% url 'edit_lead_source' lead_source.pk %}">Edit</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p><b>Add a new number to populate tdis list</b></p>
+      {% endif %}
+
+    </div>
+
+    <div class="col-md-7">
+      <h2>Charts</h2>
+      <p>tde latest statistics about how tde lead sources are performing.</p>
+
+      <div class="row">
+        <div class="col-md-6">
+          <h3>All Calls</h3>
+          <p>List of all calls.</p>
+
+          <br />
+
+          <table class="table table-striped">
+          <tr>
+            <td>Source</td>
+            <td>Phone Number</td>
+            <td>Time</td>
+            <td>City</td>
+            <td>State</td>
+          </tr>
+          {% for item in items %}
+          <tr>
+             <td>{{leadsList.source}}</td>
+             <td>{{leadsList.phone_number}}</td>
+             <td>{{leadsList.timestamp}}</td>
+             <td>{{leadsList.city}}</td>
+             <td>{{leadsList.state}}</td>
+          </tr>
+          {% endfor %}
+          </table>
+        </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <h3>Calls by lead source</h3>
+          <p>tde number of incoming calls each lead source has received.</p>
+          <canvas id="leadsBySource"></canvas>
+        </div>
+
+        <div class="col-md-6">
+          <h3>Calls by city</h3>
+          <p>tde number of calls from different cities, based on Twilio call data</p>
+          <canvas id="leadsByCity"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div><!--/row-->
+{% endblock %}
+
+{% block page_js %}
+  <script src="{% static 'js/Chart.js' %}"></script>
+  <script src="{% static 'js/callTracking.js' %}"></script>
+{% endblock %}

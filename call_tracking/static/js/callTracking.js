@@ -30,3 +30,8 @@ $.get("/call-tracking/leads-by-city", function(data) {
   var ctx = document.getElementById("leadsByCity").getContext("2d");
   var leadsByCity = new Chart(ctx).Pie(chartData);
 });
+
+// Configure the leadsByCity bar chart
+$.get("/call-tracking/leads_list", function(data) {
+  var leadsList = leadsList;
+});

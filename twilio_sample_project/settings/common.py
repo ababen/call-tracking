@@ -71,6 +71,8 @@ THIRD_PARTY_APPS = (
 
 LOCAL_APPS = (
     'call_tracking',
+    'users',
+    'messaging'
 )
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -123,13 +125,17 @@ DATABASES = {
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/New_York'
 
 USE_I18N = True
 
 USE_L10N = True
 
 USE_TZ = True
+
+# Handling Login/Logout
+
+LOGIN_REDIRECT_URL = '../../dashboard'
 
 
 # Static files (CSS, JavaScript, Images)

@@ -1,4 +1,7 @@
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.http import HttpResponse, JsonResponse
@@ -13,9 +16,18 @@ from .forms import AreaCodeForm, PurchaseNumberForm
 from .models import LeadSource, Lead
 from .utils import search_phone_numbers, purchase_phone_number
 
-
 # Home page view and JSON views to power the charts
-def home(request):
+def index(request):
+    """Renders the home page"""
+    # context = {}
+
+    # Add the area code form - default to 415
+    # context['form'] = Login.objects.all()
+
+    return render(request, 'index.html')
+
+@login_required(login_url='/accounts/login')
+def dashboard(request):
     """Renders the home page"""
     context = {}
 
@@ -25,9 +37,10 @@ def home(request):
     # Add the list of lead sources
     context['lead_sources'] = LeadSource.objects.all()
 
-    return render(request, 'index.html', context)
+    return render(request, 'dashboard.html', context)
 
 
+@login_required(login_url='/accounts/login')
 def leads_by_source(request):
     """Returns JSON data about the lead sources and how many leads they have"""
     # Invoke a LeadSource classmethod to get the data
@@ -36,7 +49,7 @@ def leads_by_source(request):
     # Return it as JSON - use safe=False because we're sending a JSON array
     return JsonResponse(data, safe=False)
 
-
+@login_required(login_url='/accounts/login')
 def leads_by_city(request):
     """Returns JSON data about the different cities leads come from"""
     # Invoke a Lead classmethod to get the data
@@ -45,8 +58,17 @@ def leads_by_city(request):
     # Return it as JSON - use safe=False because we're sending a JSON array
     return JsonResponse(data, safe=False)
 
+@login_required(login_url='/accounts/login')
+def leads_list(request):
+    """Returns JSON data of all leads"""
+    # Invoke a Lead classmethod to get the data
+    data = Lead.objects.all()
+
+    # Return it as JSON - use safe=False because we're sending a JSON array
+    return JsonResponse(data, safe=False)
 
 # Views for purchase number workflow
+@login_required(login_url='/accounts/login')
 def list_numbers(request):
     """Uses the Twilio API to generate a list of available phone numbers"""
     form = AreaCodeForm(request.POST)
@@ -62,7 +84,7 @@ def list_numbers(request):
             messages.error(
                 request,
                 'There are no Twilio numbers available for area code {0}. Search for numbers in a different area code.'.format(area_code))
-            return redirect('home')
+            return redirect('dashboard')
 
         context = {}
         context['available_numbers'] = available_numbers
@@ -74,9 +96,10 @@ def list_numbers(request):
         messages.error(request, '{0} is not a valid area code. Please search again.'
                        .format(bad_area_code))
 
-        return redirect('home')
+        return redirect('dashboard')
 
 
+@login_required(login_url='/accounts/login')
 def purchase_number(request):
     """Purchases a new phone number using the Twilio API"""
     form = PurchaseNumberForm(request.POST)
@@ -103,7 +126,7 @@ def purchase_number(request):
         messages.error(request, '{0} is not a valid phone number. Please search again.'
                        .format(bad_phone_number))
 
-        return redirect('home')
+        return redirect('dashboard')
 
 
 class LeadSourceUpdateView(SuccessMessageMixin, UpdateView):
@@ -111,7 +134,7 @@ class LeadSourceUpdateView(SuccessMessageMixin, UpdateView):
 
     model = LeadSource
     fields = ['name', 'forwarding_number']
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('dashboard')
     success_message = 'Lead source successfully updated.'
 
 
@@ -119,6 +142,7 @@ class LeadSourceUpdateView(SuccessMessageMixin, UpdateView):
 # number for that lead source
 # @csrf_exempt
 
+@login_required(login_url='/accounts/login')
 @csrf_exempt
 def forward_call(request):
     """Connects an incoming call to the correct forwarding number"""

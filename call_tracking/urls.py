@@ -7,9 +7,13 @@ from .views import (
     LeadSourceUpdateView,
     leads_by_source,
     leads_by_city,
+    leads_list,
+    dashboard
 )
 
 urlpatterns = [
+    # General redirection
+    re_path(r'^dashboard$', dashboard, name='dashboard'),
     # URLs for searching for and purchasing a new Twilio number
     re_path(r'^list-numbers$', list_numbers, name='list_numbers'),
     re_path(r'^purchase-number$', purchase_number, name='purchase_number'),
